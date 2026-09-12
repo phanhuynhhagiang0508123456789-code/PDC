@@ -356,21 +356,27 @@ void Get_init_cond(double loc_masses[], vect_t loc_pos[],
  *            velocities are in the positive y-direction and
  *            some are negative.
  */
-void Gen_init_cond(double masses[], vect_t pos[], 
+void Gen_init_cond(double loc_masses[], vect_t loc_pos[],
       vect_t loc_vel[], int n, int loc_n) {
    int part;
    double mass = 5.0e24;
    double gap = 1.0e5;
    double speed = 3.0e4;
 
+   double* all_masses = NULL;
+   vect_t* all_pos = NULL;
+
    if (my_rank == 0) {
-//    srandom(1);
+      all_masses = malloc(n * sizeof(double));
+      all_pos = malloc(n * sizeof(vect_t));
+
       for (part = 0; part < n; part++) {
-         masses[part] = mass;
-         pos[part][X] = part*gap;
-         pos[part][Y] = 0.0;
+         all_masses[part] = mass;
+         all_pos[part][X] = part * gap;
+         all_pos[part][Y] = 0.0;
+
          vel[part][X] = 0.0;
-//       if (random()/((double) RAND_MAX) >= 0.5)
+
          if (part % 2 == 0)
             vel[part][Y] = speed;
          else
@@ -378,10 +384,19 @@ void Gen_init_cond(double masses[], vect_t pos[],
       }
    }
 
-   MPI_Bcast(masses, n, MPI_DOUBLE, 0, comm);
-   MPI_Bcast(pos, n, vect_mpi_t, 0, comm);
-   MPI_Scatter(vel, loc_n, vect_mpi_t, 
+   MPI_Scatter(all_masses, loc_n, MPI_DOUBLE,
+         loc_masses, loc_n, MPI_DOUBLE, 0, comm);
+
+   MPI_Scatter(all_pos, loc_n, vect_mpi_t,
+         loc_pos, loc_n, vect_mpi_t, 0, comm);
+
+   MPI_Scatter(vel, loc_n, vect_mpi_t,
          loc_vel, loc_n, vect_mpi_t, 0, comm);
+
+   if (my_rank == 0) {
+      free(all_masses);
+      free(all_pos);
+   }
 }  /* Gen_init_cond */
 
 
