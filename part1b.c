@@ -87,9 +87,9 @@ vect_t *vel = NULL;
 void Usage(char* prog_name);
 void Get_args(int argc, char* argv[], int* n_p, int* n_steps_p, 
       double* delta_t_p, int* output_freq_p, char* g_i_p);
-void Get_init_cond(double masses[], vect_t pos[], 
+void Get_init_cond(double loc_masses[], vect_t loc_pos[],
       vect_t loc_vel[], int n, int loc_n);
-void Gen_init_cond(double masses[], vect_t pos[], 
+void Gen_init_cond(double loc_masses[], vect_t loc_pos[],
       vect_t loc_vel[], int n, int loc_n);
 void Output_state(double time, double masses[], vect_t pos[],
       vect_t loc_vel[], int n, int loc_n);
@@ -146,9 +146,9 @@ int main(int argc, char* argv[]) {
    MPI_Type_commit(&vect_mpi_t);
 
    if (g_i == 'i')
-      Get_init_cond(masses, pos, loc_vel, n, loc_n);
+      Get_init_cond(loc_masses, loc_pos, loc_vel, n, loc_n);
    else
-      Gen_init_cond(masses, pos, loc_vel, n, loc_n);
+      Gen_init_cond(loc_masses, loc_pos, loc_vel, n, loc_n);
 
    start = MPI_Wtime();
 #  ifndef NO_OUTPUT
