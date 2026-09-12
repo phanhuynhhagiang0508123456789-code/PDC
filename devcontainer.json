@@ -1,0 +1,80 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/ubuntu
+{
+	"name": "Parallel and Distributed Computing",
+	"image": "ghcr.io/uadelaide/pdc:2026.S2.0",
+
+	// Features to add to the dev container. More info: https://containers.dev/features.
+	// "features": {},
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+		// NF - added 3306 for SQL forwarding, probably don't need.
+	"forwardPorts": [8080],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "uname -a",
+
+    // Use 'postStartCommand' to run commands each time the container is started.
+	// "postStartCommand": "pwd",
+
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			// Install these VSCode extensions when running the Dev Container
+			"extensions": [
+				"ms-vsliveshare.vsliveshare-pack",
+				"Oracle.mysql-shell-for-vs-code",
+				"mongodb.mongodb-vscode",
+				"davidsekar.redis-xplorer",
+				"ms-python.python"
+			],
+			// Use these default VSCode settings when running the Dev Container
+			"settings": {
+				"github.copilot.enable": {
+				"*": false
+				},
+				"github.copilot.nextEditSuggestions.enabled": false,
+      
+				// Remove/disable these extensions
+				"extension-uninstaller.uninstall": [
+					"github.copilot",
+					"github.copilot-nightly",
+					"tabnine.tabnine-vscode",
+					"timkmecl.chatgpt",
+					"kiranshah.chatgpt-helper",
+					"zhang-renyang.chat-gpt",
+					"WhenSunset.chatgpt-china",
+					"EasyCodeAI.chatgpt-gpt4-gpt3-vscode",
+					"zhukunpeng.chat-moss",
+					"JayBarnes.chatgpt-vscode-plugin",
+					"wenyikun.chatgpt-super",
+					"YaleHuang.chatgpt-ai",
+					"SilasNevstad.gpthelper",
+					"ikasann-self.vscode-chat-gpt",
+					"cedricguillemet.gpttoolbox"
+				],
+				"extensions.ignoreRecommendations": true,
+				"files.autoSave": "afterDelay",
+				"files.exclude": {
+				  	"**/.*": true
+				},
+				"files.trimTrailingWhitespace": true,
+				"files.watcherExclude": {
+					"**/.git/objects/**": true,
+					"**/.git/subtree-cache/**": true,
+					"**/node_modules/*/**": true
+				},
+				"git.autofetch": true,
+				"terminal.integrated.defaultProfile.linux": "bash"
+			}
+		
+		}
+	},
+
+	// Force AMD64 architecture
+	"runArgs": ["--platform=linux/amd64" ],
+
+	// Uncomment to connect as root instead. More info: https://aka.ms/dev-containers-non-root.
+	"remoteUser": "vscode"
+
+}
