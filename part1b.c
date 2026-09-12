@@ -192,34 +192,41 @@ int main(int argc, char* argv[]) {
    Output_state(0.0, masses, pos, loc_vel, n, loc_n);
 #  endif
    for (step = 1; step <= n_steps; step++) {
-      t = step*delta_t;
-      for (loc_part = 0; loc_part < loc_n; loc_part++)
-         Compute_force(loc_part, masses, loc_forces, pos, n, loc_n);
-      for (loc_part = 0; loc_part < loc_n; loc_part++)
-         Update_part(loc_part, masses, loc_forces, loc_pos, loc_vel, 
-               n, loc_n, delta_t);
-      /* Prepare this rank's local mass and position blocks */
+      t = step * delta_t;
+
+      /* Reset total forces */
+      for (loc_part = 0; loc_part < loc_n; loc_part++) {
+         loc_forces[loc_part][X] = 0.0;
+         loc_forces[loc_part][Y] = 0.0;
+      }
+
+      /* Force contribution from this rank's own particles */
+      Accumulate_force_block(loc_masses, loc_pos, loc_forces,
+            loc_masses, loc_pos, loc_n, my_rank);
+
+      /* Prepare local mass and position block for circulation */
       memcpy(send_masses, loc_masses, loc_n * sizeof(double));
       memcpy(send_block, loc_pos, loc_n * sizeof(vect_t));
       owner = my_rank;
 
-      /* Circulate position blocks around the ring */
+      /* Circulate remote blocks and accumulate their forces */
       for (pass = 0; pass < comm_sz - 1; pass++) {
-         MPI_Sendrecv(send_masses, loc_n, MPI_DOUBLE, next, 0,
-             recv_masses, loc_n, MPI_DOUBLE, previous, 0,
-             comm, MPI_STATUS_IGNORE);
 
-         MPI_Sendrecv(send_block, loc_n, vect_mpi_t, next, 0,
-                     recv_block, loc_n, vect_mpi_t, previous, 0,
+         MPI_Sendrecv(send_masses, loc_n, MPI_DOUBLE, next, 0,
+                     recv_masses, loc_n, MPI_DOUBLE, previous, 0,
                      comm, MPI_STATUS_IGNORE);
-         
+
+         MPI_Sendrecv(send_block, loc_n, vect_mpi_t, next, 1,
+                     recv_block, loc_n, vect_mpi_t, previous, 1,
+                     comm, MPI_STATUS_IGNORE);
+
          owner = (owner - 1 + comm_sz) % comm_sz;
 
-         memcpy(pos + owner * loc_n,
-               recv_block,
-               loc_n * sizeof(vect_t));
+         /* Add force contribution from received block */
+         Accumulate_force_block(loc_masses, loc_pos, loc_forces,
+               recv_masses, recv_block, loc_n, owner);
 
-         /* Forward the block received in this round */
+         /* Forward received block next round */
          vect_t* temp = send_block;
          send_block = recv_block;
          recv_block = temp;
@@ -229,10 +236,15 @@ int main(int argc, char* argv[]) {
          recv_masses = temp_masses;
       }
 
-#     ifndef NO_OUTPUT
+      /* Update only after the full force has been calculated */
+      for (loc_part = 0; loc_part < loc_n; loc_part++)
+         Update_part(loc_part, loc_masses, loc_forces,
+               loc_pos, loc_vel, n, loc_n, delta_t);
+
+   #  ifndef NO_OUTPUT
       if (step % output_freq == 0)
-         Output_state(t, masses, pos, loc_vel, n, loc_n);
-#     endif
+         Output_state(t, loc_masses, loc_pos, loc_vel, n, loc_n);
+   #  endif
    }
    
    finish = MPI_Wtime();
