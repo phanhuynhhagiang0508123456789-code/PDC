@@ -115,6 +115,10 @@ int main(int argc, char* argv[]) {
    vect_t* loc_vel;            /* Velocities of my particles */
    vect_t* loc_forces;         /* Forces on my particles     */
 
+   vect_t* send_block;         /* Current block sent around ring */
+   vect_t* recv_block;         /* Block received from previous rank */
+   int owner;                  /* Original owner of current block */
+
    char g_i;                   /*_G_en or _i_nput init conds */
    double start, finish;       /* For timings                */
 
@@ -134,6 +138,10 @@ int main(int argc, char* argv[]) {
    loc_forces = malloc(loc_n*sizeof(vect_t));
    loc_pos = pos + my_rank*loc_n;
    loc_vel = malloc(loc_n*sizeof(vect_t));
+
+   send_block = malloc(loc_n * sizeof(vect_t));
+   recv_block = malloc(loc_n * sizeof(vect_t));
+
    if (my_rank == 0) vel = malloc(n*sizeof(vect_t));
    MPI_Type_contiguous(DIM, MPI_DOUBLE, &vect_mpi_t);
    MPI_Type_commit(&vect_mpi_t);
@@ -172,6 +180,9 @@ int main(int argc, char* argv[]) {
    free(loc_forces);
    free(loc_vel);
    if (my_rank == 0) free(vel);
+
+   free(send_block);
+   free(recv_block);
 
    MPI_Finalize();
 
