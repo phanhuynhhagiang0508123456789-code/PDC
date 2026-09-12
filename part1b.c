@@ -189,7 +189,7 @@ int main(int argc, char* argv[]) {
 
    start = MPI_Wtime();
 #  ifndef NO_OUTPUT
-   Output_state(0.0, masses, pos, loc_vel, n, loc_n);
+   Output_state(0.0, loc_masses, loc_pos, loc_vel, n, loc_n);
 #  endif
    for (step = 1; step <= n_steps; step++) {
       t = step * delta_t;
@@ -578,7 +578,7 @@ void Update_part(int loc_part, double masses[], vect_t loc_forces[],
    double fact;
 
    part = my_rank*loc_n + loc_part;
-   fact = delta_t/masses[part];
+   fact = delta_t/loc_masses[loc_part];
 #  ifdef DEBUG
    printf("Proc %d > Before update of %d:\n", my_rank, part);
    printf("   Position  = (%.3e, %.3e)\n", 
