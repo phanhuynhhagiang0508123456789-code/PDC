@@ -105,6 +105,7 @@ int main(int argc, char* argv[]) {
    int n_steps;                /* Number of timesteps        */
    int step;                   /* Current step               */
    int loc_part;               /* Current local particle     */
+   int next, previous;         /* Neighbouring ranks in ring */
    int output_freq;            /* Frequency of output        */
    double delta_t;             /* Size of timestep           */
    double t;                   /* Current Time               */
@@ -121,6 +122,10 @@ int main(int argc, char* argv[]) {
    comm = MPI_COMM_WORLD;
    MPI_Comm_size(comm, &comm_sz);
    MPI_Comm_rank(comm, &my_rank);
+
+   /* Identify neighbouring MPI ranks for ring communication */
+   next = (my_rank + 1) % comm_sz;
+   previous = (my_rank - 1 + comm_sz) % comm_sz;   
 
    Get_args(argc, argv, &n, &n_steps, &delta_t, &output_freq, &g_i);
    loc_n = n/comm_sz;  /* n should be evenly divisible by comm_sz */
