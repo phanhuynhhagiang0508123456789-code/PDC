@@ -91,7 +91,7 @@ void Get_init_cond(double loc_masses[], vect_t loc_pos[],
       vect_t loc_vel[], int n, int loc_n);
 void Gen_init_cond(double loc_masses[], vect_t loc_pos[],
       vect_t loc_vel[], int n, int loc_n);
-void Output_state(double time, double masses[], vect_t pos[],
+void Output_state(double time, vect_t loc_pos[],
       vect_t loc_vel[], int n, int loc_n);
 void Compute_force(int loc_part, double masses[], vect_t loc_forces[], 
       vect_t pos[], int n, int loc_n);
@@ -471,24 +471,34 @@ void Gen_init_cond(double loc_masses[], vect_t loc_pos[],
  *    n:       total number of particles
  *    loc_n:   number of my particles
  */
-void Output_state(double time, double masses[], vect_t pos[],
+void Output_state(double time, vect_t loc_pos[],
       vect_t loc_vel[], int n, int loc_n) {
    int part;
+   vect_t* all_pos = NULL;
 
-   MPI_Gather(loc_vel, loc_n, vect_mpi_t, vel, loc_n, vect_mpi_t, 
-         0, comm);
+   if (my_rank == 0)
+      all_pos = malloc(n * sizeof(vect_t));
+
+   MPI_Gather(loc_pos, loc_n, vect_mpi_t,
+         all_pos, loc_n, vect_mpi_t, 0, comm);
+
+   MPI_Gather(loc_vel, loc_n, vect_mpi_t,
+         vel, loc_n, vect_mpi_t, 0, comm);
+
    if (my_rank == 0) {
       printf("%.2f\n", time);
+
       for (part = 0; part < n; part++) {
-//       printf("%.3f ", masses[part]);
-         printf("%3d %10.3e ", part, pos[part][X]);
-         printf("  %10.3e ", pos[part][Y]);
+         printf("%3d %10.3e ", part, all_pos[part][X]);
+         printf("  %10.3e ", all_pos[part][Y]);
          printf("  %10.3e ", vel[part][X]);
          printf("  %10.3e\n", vel[part][Y]);
       }
+
       printf("\n");
+      free(all_pos);
    }
-}  /* Output_state */
+} /* Output_state */
 
 
 /*---------------------------------------------------------------------
