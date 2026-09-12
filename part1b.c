@@ -172,6 +172,10 @@ int main(int argc, char* argv[]) {
 
       /* Circulate position blocks around the ring */
       for (pass = 0; pass < comm_sz - 1; pass++) {
+         MPI_Sendrecv(send_masses, loc_n, MPI_DOUBLE, next, 0,
+             recv_masses, loc_n, MPI_DOUBLE, previous, 0,
+             comm, MPI_STATUS_IGNORE);
+
          MPI_Sendrecv(send_block, loc_n, vect_mpi_t, next, 0,
                      recv_block, loc_n, vect_mpi_t, previous, 0,
                      comm, MPI_STATUS_IGNORE);
@@ -186,6 +190,10 @@ int main(int argc, char* argv[]) {
          vect_t* temp = send_block;
          send_block = recv_block;
          recv_block = temp;
+
+         double* temp_masses = send_masses;
+         send_masses = recv_masses;
+         recv_masses = temp_masses;
       }
 
 #     ifndef NO_OUTPUT
