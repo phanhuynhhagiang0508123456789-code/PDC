@@ -118,6 +118,7 @@ int main(int argc, char* argv[]) {
    vect_t* send_block;         /* Current block sent around ring */
    vect_t* recv_block;         /* Block received from previous rank */
    int owner;                  /* Original owner of current block */
+   int pass;
 
    char g_i;                   /*_G_en or _i_nput init conds */
    double start, finish;       /* For timings                */
@@ -165,7 +166,19 @@ int main(int argc, char* argv[]) {
       /* Prepare this rank's updated position block for ring communication */
       memcpy(send_block, loc_pos, loc_n * sizeof(vect_t));
       owner = my_rank;
-      
+
+      /* Circulate position blocks around the ring */
+      for (pass = 0; pass < comm_sz - 1; pass++) {
+         MPI_Sendrecv(send_block, loc_n, vect_mpi_t, next, 0,
+                     recv_block, loc_n, vect_mpi_t, previous, 0,
+                     comm, MPI_STATUS_IGNORE);
+
+         /* Forward the block received in this round */
+         vect_t* temp = send_block;
+         send_block = recv_block;
+         recv_block = temp;
+      }
+
       MPI_Allgather(MPI_IN_PLACE, loc_n, vect_mpi_t, 
                     pos, loc_n, vect_mpi_t, comm);
 #     ifndef NO_OUTPUT
