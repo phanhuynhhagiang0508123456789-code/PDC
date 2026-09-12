@@ -297,27 +297,43 @@ void Get_args(int argc, char* argv[], int* n_p, int* n_steps_p,
  * Global var:
  *    vel:     Scratch.  Used by process 0 for global velocities
  */
-void Get_init_cond(double masses[], vect_t pos[], 
-     vect_t loc_vel[], int n, int loc_n) {
+void Get_init_cond(double loc_masses[], vect_t loc_pos[],
+      vect_t loc_vel[], int n, int loc_n) {
    int part;
+   double* all_masses = NULL;
+   vect_t* all_pos = NULL;
 
    if (my_rank == 0) {
+      all_masses = malloc(n * sizeof(double));
+      all_pos = malloc(n * sizeof(vect_t));
+
       printf("For each particle, enter (in order):\n");
       printf("   its mass, its x-coord, its y-coord, ");
       printf("its x-velocity, its y-velocity\n");
+
       for (part = 0; part < n; part++) {
-         scanf("%lf", &masses[part]);
-         scanf("%lf", &pos[part][X]);
-         scanf("%lf", &pos[part][Y]);
+         scanf("%lf", &all_masses[part]);
+         scanf("%lf", &all_pos[part][X]);
+         scanf("%lf", &all_pos[part][Y]);
          scanf("%lf", &vel[part][X]);
          scanf("%lf", &vel[part][Y]);
       }
    }
-   MPI_Bcast(masses, n, MPI_DOUBLE, 0, comm);
-   MPI_Bcast(pos, n, vect_mpi_t, 0, comm);
-   MPI_Scatter(vel, loc_n, vect_mpi_t, 
+
+   MPI_Scatter(all_masses, loc_n, MPI_DOUBLE,
+         loc_masses, loc_n, MPI_DOUBLE, 0, comm);
+
+   MPI_Scatter(all_pos, loc_n, vect_mpi_t,
+         loc_pos, loc_n, vect_mpi_t, 0, comm);
+
+   MPI_Scatter(vel, loc_n, vect_mpi_t,
          loc_vel, loc_n, vect_mpi_t, 0, comm);
-}  /* Get_init_cond */
+
+   if (my_rank == 0) {
+      free(all_masses);
+      free(all_pos);
+   }
+} /* Get_init_cond */
 
 /*---------------------------------------------------------------------
  * Function:  Gen_init_cond
