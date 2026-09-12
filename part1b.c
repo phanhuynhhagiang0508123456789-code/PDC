@@ -109,9 +109,8 @@ int main(int argc, char* argv[]) {
    int output_freq;            /* Frequency of output        */
    double delta_t;             /* Size of timestep           */
    double t;                   /* Current Time               */
-   double* masses;             /* All the masses             */
+   double* loc_masses;         /* Masses of my particles     */
    vect_t* loc_pos;            /* Positions of my particles  */
-   vect_t* pos;                /* Positions of all particles */
    vect_t* loc_vel;            /* Velocities of my particles */
    vect_t* loc_forces;         /* Forces on my particles     */
 
@@ -134,11 +133,10 @@ int main(int argc, char* argv[]) {
 
    Get_args(argc, argv, &n, &n_steps, &delta_t, &output_freq, &g_i);
    loc_n = n/comm_sz;  /* n should be evenly divisible by comm_sz */
-   masses = malloc(n*sizeof(double));
-   pos = malloc(n*sizeof(vect_t));
-   loc_forces = malloc(loc_n*sizeof(vect_t));
-   loc_pos = pos + my_rank*loc_n;
-   loc_vel = malloc(loc_n*sizeof(vect_t));
+   loc_masses = malloc(loc_n * sizeof(double));
+   loc_pos = malloc(loc_n * sizeof(vect_t));
+   loc_forces = malloc(loc_n * sizeof(vect_t));
+   loc_vel = malloc(loc_n * sizeof(vect_t));
 
    send_block = malloc(loc_n * sizeof(vect_t));
    recv_block = malloc(loc_n * sizeof(vect_t));
@@ -196,8 +194,8 @@ int main(int argc, char* argv[]) {
       printf("Elapsed time = %e seconds\n", finish-start);
 
    MPI_Type_free(&vect_mpi_t);
-   free(masses);
-   free(pos);
+   free(loc_masses);
+   free(loc_pos);
    free(loc_forces);
    free(loc_vel);
    if (my_rank == 0) free(vel);
