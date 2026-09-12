@@ -95,6 +95,39 @@ void Output_state(double time, double masses[], vect_t pos[],
       vect_t loc_vel[], int n, int loc_n);
 void Compute_force(int loc_part, double masses[], vect_t loc_forces[], 
       vect_t pos[], int n, int loc_n);
+void Accumulate_force_block(double loc_masses[], vect_t loc_pos[],
+      vect_t loc_forces[], double block_masses[], vect_t block_pos[],
+      int loc_n, int owner) {
+   int loc_part, k;
+   int target_global, source_global;
+   double mg;
+   vect_t f_part_k;
+   double len, len_3, fact;
+
+   for (loc_part = 0; loc_part < loc_n; loc_part++) {
+      target_global = my_rank * loc_n + loc_part;
+
+      for (k = 0; k < loc_n; k++) {
+         source_global = owner * loc_n + k;
+
+         /* Avoid self-interaction */
+         if (target_global != source_global) {
+            f_part_k[X] = loc_pos[loc_part][X] - block_pos[k][X];
+            f_part_k[Y] = loc_pos[loc_part][Y] - block_pos[k][Y];
+
+            len = sqrt(f_part_k[X] * f_part_k[X]
+                     + f_part_k[Y] * f_part_k[Y]);
+            len_3 = len * len * len;
+
+            mg = -G * loc_masses[loc_part] * block_masses[k];
+            fact = mg / len_3;
+
+            loc_forces[loc_part][X] += f_part_k[X] * fact;
+            loc_forces[loc_part][Y] += f_part_k[Y] * fact;
+         }
+      }
+   }
+}
 void Update_part(int loc_part, double masses[], vect_t loc_forces[], 
       vect_t loc_pos[], vect_t loc_vel[], int n, int loc_n, double delta_t);
 
