@@ -172,6 +172,12 @@ int main(int argc, char* argv[]) {
          MPI_Sendrecv(send_block, loc_n, vect_mpi_t, next, 0,
                      recv_block, loc_n, vect_mpi_t, previous, 0,
                      comm, MPI_STATUS_IGNORE);
+         
+         owner = (owner - 1 + comm_sz) % comm_sz;
+
+         memcpy(pos + owner * loc_n,
+               recv_block,
+               loc_n * sizeof(vect_t));
 
          /* Forward the block received in this round */
          vect_t* temp = send_block;
