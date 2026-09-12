@@ -185,8 +185,6 @@ int main(int argc, char* argv[]) {
          recv_block = temp;
       }
 
-      MPI_Allgather(MPI_IN_PLACE, loc_n, vect_mpi_t, 
-                    pos, loc_n, vect_mpi_t, comm);
 #     ifndef NO_OUTPUT
       if (step % output_freq == 0)
          Output_state(t, masses, pos, loc_vel, n, loc_n);
