@@ -165,7 +165,8 @@ int main(int argc, char* argv[]) {
       for (loc_part = 0; loc_part < loc_n; loc_part++)
          Update_part(loc_part, masses, loc_forces, loc_pos, loc_vel, 
                n, loc_n, delta_t);
-      /* Prepare this rank's updated position block for ring communication */
+      /* Prepare this rank's local mass and position blocks */
+      memcpy(send_masses, loc_masses, loc_n * sizeof(double));
       memcpy(send_block, loc_pos, loc_n * sizeof(vect_t));
       owner = my_rank;
 
