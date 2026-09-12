@@ -81,8 +81,7 @@ int my_rank, comm_sz;
 MPI_Comm comm;
 MPI_Datatype vect_mpi_t;
 
-/* Scratch array used by process 0 for global velocity I/O */
-vect_t *vel = NULL;
+
 
 void Usage(char* prog_name);
 void Get_args(int argc, char* argv[], int* n_p, int* n_steps_p, 
@@ -128,8 +127,9 @@ void Accumulate_force_block(double loc_masses[], vect_t loc_pos[],
       }
    }
 }
-void Update_part(int loc_part, double masses[], vect_t loc_forces[], 
-      vect_t loc_pos[], vect_t loc_vel[], int n, int loc_n, double delta_t);
+void Update_part(int loc_part, double loc_masses[], vect_t loc_forces[],
+      vect_t loc_pos[], vect_t loc_vel[], int n, int loc_n,
+      double delta_t);
 
 /*--------------------------------------------------------------------*/
 int main(int argc, char* argv[]) {
@@ -178,7 +178,6 @@ int main(int argc, char* argv[]) {
    send_masses = malloc(loc_n * sizeof(double));
    recv_masses = malloc(loc_n * sizeof(double));
 
-   if (my_rank == 0) vel = malloc(n*sizeof(vect_t));
    MPI_Type_contiguous(DIM, MPI_DOUBLE, &vect_mpi_t);
    MPI_Type_commit(&vect_mpi_t);
 
@@ -189,7 +188,7 @@ int main(int argc, char* argv[]) {
 
    start = MPI_Wtime();
 #  ifndef NO_OUTPUT
-   Output_state(0.0, loc_masses, loc_pos, loc_vel, n, loc_n);
+   Output_state(0.0, loc_pos, loc_vel, n, loc_n);
 #  endif
    for (step = 1; step <= n_steps; step++) {
       t = step * delta_t;
@@ -243,7 +242,7 @@ int main(int argc, char* argv[]) {
 
    #  ifndef NO_OUTPUT
       if (step % output_freq == 0)
-         Output_state(t, loc_masses, loc_pos, loc_vel, n, loc_n);
+         Output_state(t, loc_pos, loc_vel, n, loc_n);
    #  endif
    }
    
@@ -256,7 +255,6 @@ int main(int argc, char* argv[]) {
    free(loc_pos);
    free(loc_forces);
    free(loc_vel);
-   if (my_rank == 0) free(vel);
 
    free(send_block);
    free(recv_block);
@@ -362,10 +360,12 @@ void Get_init_cond(double loc_masses[], vect_t loc_pos[],
    int part;
    double* all_masses = NULL;
    vect_t* all_pos = NULL;
+   vect_t* all_vel = NULL;
 
    if (my_rank == 0) {
       all_masses = malloc(n * sizeof(double));
       all_pos = malloc(n * sizeof(vect_t));
+      all_vel = malloc(n * sizeof(vect_t));
 
       printf("For each particle, enter (in order):\n");
       printf("   its mass, its x-coord, its y-coord, ");
@@ -375,8 +375,8 @@ void Get_init_cond(double loc_masses[], vect_t loc_pos[],
          scanf("%lf", &all_masses[part]);
          scanf("%lf", &all_pos[part][X]);
          scanf("%lf", &all_pos[part][Y]);
-         scanf("%lf", &vel[part][X]);
-         scanf("%lf", &vel[part][Y]);
+         scanf("%lf", &all_vel[part][X]);
+         scanf("%lf", &all_vel[part][Y]);
       }
    }
 
@@ -386,12 +386,13 @@ void Get_init_cond(double loc_masses[], vect_t loc_pos[],
    MPI_Scatter(all_pos, loc_n, vect_mpi_t,
          loc_pos, loc_n, vect_mpi_t, 0, comm);
 
-   MPI_Scatter(vel, loc_n, vect_mpi_t,
+   MPI_Scatter(all_vel, loc_n, vect_mpi_t,
          loc_vel, loc_n, vect_mpi_t, 0, comm);
 
    if (my_rank == 0) {
       free(all_masses);
       free(all_pos);
+      free(all_vel);
    }
 } /* Get_init_cond */
 
@@ -425,22 +426,24 @@ void Gen_init_cond(double loc_masses[], vect_t loc_pos[],
 
    double* all_masses = NULL;
    vect_t* all_pos = NULL;
+   vect_t* all_vel = NULL;
 
    if (my_rank == 0) {
       all_masses = malloc(n * sizeof(double));
       all_pos = malloc(n * sizeof(vect_t));
+      all_vel = malloc(n * sizeof(vect_t));
 
       for (part = 0; part < n; part++) {
          all_masses[part] = mass;
          all_pos[part][X] = part * gap;
          all_pos[part][Y] = 0.0;
 
-         vel[part][X] = 0.0;
+         all_vel[part][X] = 0.0;
 
          if (part % 2 == 0)
-            vel[part][Y] = speed;
+            all_vel[part][Y] = speed;
          else
-            vel[part][Y] = -speed;
+            all_vel[part][Y] = -speed;
       }
    }
 
@@ -450,12 +453,13 @@ void Gen_init_cond(double loc_masses[], vect_t loc_pos[],
    MPI_Scatter(all_pos, loc_n, vect_mpi_t,
          loc_pos, loc_n, vect_mpi_t, 0, comm);
 
-   MPI_Scatter(vel, loc_n, vect_mpi_t,
+   MPI_Scatter(all_vel, loc_n, vect_mpi_t,
          loc_vel, loc_n, vect_mpi_t, 0, comm);
 
    if (my_rank == 0) {
       free(all_masses);
       free(all_pos);
+      free(all_vel);
    }
 }  /* Gen_init_cond */
 
@@ -475,15 +479,18 @@ void Output_state(double time, vect_t loc_pos[],
       vect_t loc_vel[], int n, int loc_n) {
    int part;
    vect_t* all_pos = NULL;
+   vect_t* all_vel = NULL;
 
-   if (my_rank == 0)
+   if (my_rank == 0) {
       all_pos = malloc(n * sizeof(vect_t));
+      all_vel = malloc(n * sizeof(vect_t));
+   }
 
    MPI_Gather(loc_pos, loc_n, vect_mpi_t,
          all_pos, loc_n, vect_mpi_t, 0, comm);
 
    MPI_Gather(loc_vel, loc_n, vect_mpi_t,
-         vel, loc_n, vect_mpi_t, 0, comm);
+         all_vel, loc_n, vect_mpi_t, 0, comm);
 
    if (my_rank == 0) {
       printf("%.2f\n", time);
@@ -491,12 +498,14 @@ void Output_state(double time, vect_t loc_pos[],
       for (part = 0; part < n; part++) {
          printf("%3d %10.3e ", part, all_pos[part][X]);
          printf("  %10.3e ", all_pos[part][Y]);
-         printf("  %10.3e ", vel[part][X]);
-         printf("  %10.3e\n", vel[part][Y]);
+         printf("  %10.3e ", all_vel[part][X]);
+         printf("  %10.3e\n", all_vel[part][Y]);
       }
 
       printf("\n");
+
       free(all_pos);
+      free(all_vel);
    }
 } /* Output_state */
 
@@ -581,7 +590,7 @@ void Compute_force(int loc_part, double masses[], vect_t loc_forces[],
  * Note:  This version uses Euler's method to update both the velocity
  *    and the position.
  */
-void Update_part(int loc_part, double masses[], vect_t loc_forces[], 
+void Update_part(int loc_part, double loc_masses[], vect_t loc_forces[], 
       vect_t loc_pos[], vect_t loc_vel[], int n, int loc_n, 
       double delta_t) {
    int part;
