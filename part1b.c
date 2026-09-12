@@ -116,6 +116,8 @@ int main(int argc, char* argv[]) {
 
    vect_t* send_block;         /* Current block sent around ring */
    vect_t* recv_block;         /* Block received from previous rank */
+   double* send_masses;
+   double* recv_masses;
    int owner;                  /* Original owner of current block */
    int pass;
 
@@ -140,6 +142,8 @@ int main(int argc, char* argv[]) {
 
    send_block = malloc(loc_n * sizeof(vect_t));
    recv_block = malloc(loc_n * sizeof(vect_t));
+   send_masses = malloc(loc_n * sizeof(double));
+   recv_masses = malloc(loc_n * sizeof(double));
 
    if (my_rank == 0) vel = malloc(n*sizeof(vect_t));
    MPI_Type_contiguous(DIM, MPI_DOUBLE, &vect_mpi_t);
@@ -202,6 +206,8 @@ int main(int argc, char* argv[]) {
 
    free(send_block);
    free(recv_block);
+   free(send_masses);
+   free(recv_masses);
 
    MPI_Finalize();
 
