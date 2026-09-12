@@ -162,6 +162,10 @@ int main(int argc, char* argv[]) {
       for (loc_part = 0; loc_part < loc_n; loc_part++)
          Update_part(loc_part, masses, loc_forces, loc_pos, loc_vel, 
                n, loc_n, delta_t);
+      /* Prepare this rank's updated position block for ring communication */
+      memcpy(send_block, loc_pos, loc_n * sizeof(vect_t));
+      owner = my_rank;
+      
       MPI_Allgather(MPI_IN_PLACE, loc_n, vect_mpi_t, 
                     pos, loc_n, vect_mpi_t, comm);
 #     ifndef NO_OUTPUT
