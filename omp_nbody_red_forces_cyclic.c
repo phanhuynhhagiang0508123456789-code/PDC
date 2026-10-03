@@ -1,4 +1,4 @@
-/* File:     omp_nbody_red_forces_cyclic.c
+/* File:     omp_nbody_red.c
  *
  * Purpose:  Use OpenMP to parallelize a 2-dimensional n-body solver 
  *           that uses the reduced algorithm.  This version uses one 
@@ -136,7 +136,7 @@ int main(int argc, char* argv[]) {
 #        endif
          /* Particle n-1 will have all forces computed after call to
           * Compute_force(n-2, . . .) */
-#        pragma omp for 
+#        pragma omp for schedule(static,1)
          for (part = 0; part < n-1; part++)
             Compute_force(part, loc_forces + my_rank*n, curr, n);
 #        pragma omp for 

@@ -1,0 +1,16 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     omp_nbody_red_forces_cyclic
+relocations:
+  - { offsetInCU: 0xD0, offset: 0xD0, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x1000029E4, symSize: 0x198 }
+  - { offsetInCU: 0xA6, offset: 0xA6, size: 0x8, addend: 0x0, symName: _G, symObjAddr: 0x1138, symBinAddr: 0x100003C00, symSize: 0x0 }
+  - { offsetInCU: 0x10C, offset: 0x10C, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x1000029E4, symSize: 0x198 }
+  - { offsetInCU: 0x14D, offset: 0x14D, size: 0x8, addend: 0x0, symName: _main._omp_fn.0, symObjAddr: 0xCC4, symBinAddr: 0x1000036A8, symSize: 0x474 }
+  - { offsetInCU: 0x431, offset: 0x431, size: 0x8, addend: 0x0, symName: _Update_part, symObjAddr: 0xAB0, symBinAddr: 0x100003494, symSize: 0x214 }
+  - { offsetInCU: 0x4AF, offset: 0x4AF, size: 0x8, addend: 0x0, symName: _Compute_force, symObjAddr: 0x82C, symBinAddr: 0x100003210, symSize: 0x284 }
+  - { offsetInCU: 0x56E, offset: 0x56E, size: 0x8, addend: 0x0, symName: _Output_state, symObjAddr: 0x6EC, symBinAddr: 0x1000030D0, symSize: 0x140 }
+  - { offsetInCU: 0x5CB, offset: 0x5CB, size: 0x8, addend: 0x0, symName: _Gen_init_cond, symObjAddr: 0x564, symBinAddr: 0x100002F48, symSize: 0x188 }
+  - { offsetInCU: 0x646, offset: 0x646, size: 0x8, addend: 0x0, symName: _Get_init_cond, symObjAddr: 0x3F4, symBinAddr: 0x100002DD8, symSize: 0x170 }
+  - { offsetInCU: 0x689, offset: 0x689, size: 0x8, addend: 0x0, symName: _Get_args, symObjAddr: 0x264, symBinAddr: 0x100002C48, symSize: 0x190 }
+  - { offsetInCU: 0x719, offset: 0x719, size: 0x8, addend: 0x0, symName: _Usage, symObjAddr: 0x198, symBinAddr: 0x100002B7C, symSize: 0xCC }
+...
