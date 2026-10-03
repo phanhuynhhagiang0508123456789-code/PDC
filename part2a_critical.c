@@ -105,24 +105,36 @@ int main(int argc, char* argv[]) {
 #  ifndef NO_OUTPUT
    Output_state(0, curr, n);
 #  endif
-   for (step = 1; step <= n_steps; step++) {
-#     ifndef NO_OUTPUT
-      t = step*delta_t;
-#     endif
+#  pragma omp parallel num_threads(thread_count) default(none) \
+      shared(curr, forces, n, n_steps, delta_t, output_freq, t) \
+      private(step, part)
+   {
+      for (step = 1; step <= n_steps; step++) {
 
-      Reset_forces(forces, n);
+#        pragma omp for
+         for (part = 0; part < n; part++) {
+            forces[part][X] = 0.0;
+            forces[part][Y] = 0.0;
+         }
 
-      /* Particle n-1 has all its forces after Compute_force(n-2, ...). */
-      for (part = 0; part < n-1; part++)
-         Compute_force(part, forces, curr, n);
+         /* Particle n-1 has all its forces after Compute_force(n-2, ...). */
+#        pragma omp for
+         for (part = 0; part < n-1; part++)
+            Compute_force(part, forces, curr, n);
 
-      for (part = 0; part < n; part++)
-         Update_part(part, forces, curr, n, delta_t);
+#        pragma omp for
+         for (part = 0; part < n; part++)
+            Update_part(part, forces, curr, n, delta_t);
 
-#     ifndef NO_OUTPUT
-      if (step % output_freq == 0)
-         Output_state(t, curr, n);
-#     endif
+#        ifndef NO_OUTPUT
+#        pragma omp single
+         {
+            t = step*delta_t;
+            if (step % output_freq == 0)
+               Output_state(t, curr, n);
+         }
+#        endif
+      }
    }
 
    finish = omp_get_wtime();
