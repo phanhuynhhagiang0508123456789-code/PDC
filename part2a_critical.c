@@ -345,10 +345,13 @@ void Compute_force(int part, vect_t forces[], struct particle_s curr[],
 #     endif
 
       /* Accumulate equal and opposite contributions into shared forces. */
-      forces[part][X] += f_part_k[X];
-      forces[part][Y] += f_part_k[Y];
-      forces[k][X] -= f_part_k[X];
-      forces[k][Y] -= f_part_k[Y];
+      #     pragma omp critical
+      {
+         forces[part][X] += f_part_k[X];
+         forces[part][Y] += f_part_k[Y];
+         forces[k][X] -= f_part_k[X];
+         forces[k][Y] -= f_part_k[Y];
+      }
    }
 }  /* Compute_force */
 
