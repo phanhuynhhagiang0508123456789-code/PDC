@@ -1,0 +1,16 @@
+---
+triple:          'arm64-apple-darwin'
+binary-path:     part2a_locks
+relocations:
+  - { offsetInCU: 0xC1, offset: 0xC1, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100002DCC, symSize: 0x214 }
+  - { offsetInCU: 0xA6, offset: 0xA6, size: 0x8, addend: 0x0, symName: _G, symObjAddr: 0xDB0, symBinAddr: 0x100003C20, symSize: 0x0 }
+  - { offsetInCU: 0x110, offset: 0x110, size: 0x8, addend: 0x0, symName: _Update_part, symObjAddr: 0xB98, symBinAddr: 0x100003964, symSize: 0x214 }
+  - { offsetInCU: 0x19A, offset: 0x19A, size: 0x8, addend: 0x0, symName: _Compute_force, symObjAddr: 0x914, symBinAddr: 0x1000036E0, symSize: 0x284 }
+  - { offsetInCU: 0x259, offset: 0x259, size: 0x8, addend: 0x0, symName: _Reset_forces, symObjAddr: 0x8A8, symBinAddr: 0x100003674, symSize: 0x6C }
+  - { offsetInCU: 0x2A5, offset: 0x2A5, size: 0x8, addend: 0x0, symName: _Output_state, symObjAddr: 0x768, symBinAddr: 0x100003534, symSize: 0x140 }
+  - { offsetInCU: 0x301, offset: 0x301, size: 0x8, addend: 0x0, symName: _Gen_init_cond, symObjAddr: 0x5E0, symBinAddr: 0x1000033AC, symSize: 0x188 }
+  - { offsetInCU: 0x376, offset: 0x376, size: 0x8, addend: 0x0, symName: _Get_init_cond, symObjAddr: 0x470, symBinAddr: 0x10000323C, symSize: 0x170 }
+  - { offsetInCU: 0x3B9, offset: 0x3B9, size: 0x8, addend: 0x0, symName: _Get_args, symObjAddr: 0x2E0, symBinAddr: 0x1000030AC, symSize: 0x190 }
+  - { offsetInCU: 0x455, offset: 0x455, size: 0x8, addend: 0x0, symName: _Usage, symObjAddr: 0x214, symBinAddr: 0x100002FE0, symSize: 0xCC }
+  - { offsetInCU: 0x482, offset: 0x482, size: 0x8, addend: 0x0, symName: _main, symObjAddr: 0x0, symBinAddr: 0x100002DCC, symSize: 0x214 }
+...
