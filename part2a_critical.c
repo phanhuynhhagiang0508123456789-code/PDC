@@ -83,9 +83,7 @@ int main(int argc, char* argv[]) {
    int part;                   /* Current particle           */
    int output_freq;            /* Frequency of output        */
    double delta_t;             /* Size of timestep           */
-#  ifndef NO_OUTPUT
-   double t;                   /* Current Time               */
-#  endif
+
    struct particle_s* curr;    /* Current state of system    */
    vect_t* forces;             /* Forces on each particle    */
    int thread_count;           /* Number of threads          */
@@ -106,7 +104,7 @@ int main(int argc, char* argv[]) {
    Output_state(0, curr, n);
 #  endif
 #  pragma omp parallel num_threads(thread_count) default(none) \
-      shared(curr, forces, n, n_steps, delta_t, output_freq, t) \
+      shared(curr, forces, n, n_steps, delta_t, output_freq) \
       private(step, part)
    {
       for (step = 1; step <= n_steps; step++) {
@@ -129,7 +127,7 @@ int main(int argc, char* argv[]) {
 #        ifndef NO_OUTPUT
 #        pragma omp single
          {
-            t = step*delta_t;
+            double t = step*delta_t;
             if (step % output_freq == 0)
                Output_state(t, curr, n);
          }
